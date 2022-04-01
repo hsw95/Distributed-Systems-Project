@@ -1,0 +1,56 @@
+# ---
+# apiVersion: getambassador.io/v2
+# kind: Mapping
+# metadata:
+#   name: phone-mapping
+#   namespacke: ambassador
+# spec:
+#   prefix: /phonebook/
+#   service: web:86
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels:
+    tier: frontend
+    app: phonebook
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 86
+    targetPort: 5000
+  selector:
+      tier: frontend
+      app: phonebook
+
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    tier: frontend
+    app: phonebook
+spec:
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  selector:
+    matchLabels:
+       tier: frontend
+       app: phonebook
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        tier: frontend
+        app: phonebook
+    spec:
+      containers:
+      - name: frontend
+        image: aletipavan/phonebook:20201107.2
+        ports:
+        - name: http
+          containerPort: 5000
